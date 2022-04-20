@@ -1,2 +1,3 @@
-# PTA
-Physiotherapy assistant to aid in performing physical exercises
+# GUI
+
+All gui related code required to run the application. Allows us to select a video and start the PTA application
