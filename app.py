@@ -5,7 +5,14 @@ import tkinter.filedialog as tkFileDialog
 import os
 import cv2
 from numpy import pad
-VIDEO_DIRECTORY =  "/home/subramanian/Videos/Webcam"# change via some options menu
+INITIAL_DIRECTORY = "/home/subramanian"
+# VIDEO_DIRECTORY =  "/home/subramanian/Videos/Webcam"# change via some options menu
+VIDEO_DIRECTORY = r"C:\Users\aadit\Videos\VA_vids"
+# THUMBNAIL_DIRECTORY = "/home/subramanian/Pictures/thumbnails"
+THUMBNAIL_DIRECTORY = r"C:\Users\aadit\OneDrive\Pictures\VA_Thumbs"
+# height and width for image. set frame size based on this in MyAPP using geometry. else just let it auto adjust
+IMG_HEIGHT = 120
+IMG_WIDTH = 150
 
 row_counter = 0
 col_counter = 0                             
@@ -38,9 +45,9 @@ class MenuBar(tk.Menu):
         self.add_cascade(label="Menu3", menu=menu_operations)
         # menu_operations.add_command(label="Page Two", command=lambda: parent.show_frame(PageTwo))
         menu_positions = tk.Menu(menu_operations, tearoff=0)
-        menu_operations.add_cascade(label="Group Command", menu=menu_positions)
-        menu_positions.add_command(label="Video Directory Select", command=set_dir)
-        menu_positions.add_command(label="Something", command=lambda: parent.show_frame(PageFour))
+        menu_operations.add_cascade(label="Folder Select", menu=menu_positions)
+        menu_positions.add_command(label="Change Video Directory", command=set_dir)
+        menu_positions.add_command(label="Change Initital Directory", command=lambda: parent.show_frame(PageOne))
 
         menu_help = tk.Menu(self, tearoff=0)
         self.add_cascade(label="Menu4", menu=menu_help)
@@ -52,20 +59,24 @@ class MyApp(tk.Tk):
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
-        main_frame = tk.Frame(self, bg="#84CEEB", height=600, width=1024)
+        main_frame = tk.Frame(self, bg="#84CEEB", height=600, width=600)
         main_frame.pack_propagate(0)
         main_frame.pack(fill="both", expand="true")
         main_frame.grid_rowconfigure(0, weight=1)
         main_frame.grid_columnconfigure(0, weight=1)
         # self.resizable(0, 0) prevents the app from being resized
-        self.geometry("1024x600") #fixes the applications size
+        self.geometry(str( IMG_WIDTH*4 + 40) + "x" + str(IMG_HEIGHT*4)) #fixes the applications size
         self.frames = {}
-        pages = (PageOne, PageTwo, PageThree, PageFour)
-        for F in pages:
-            frame = F(main_frame, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+        pages = PageOne
+        # For multiple frames
+        # for F in pages:
+        #     frame = F(main_frame, self)
+        #     self.frames[F] = frame
+        #     frame.grid(row=0, column=0, sticky="nsew")
         # self.show_frame(Some_Widgets)
+        frame = PageOne(main_frame, self)
+        self.frames[PageOne] = frame
+        frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(PageOne)
         menubar = MenuBar(self)
         tk.Tk.config(self, menu=menubar)
@@ -80,15 +91,33 @@ class MyApp(tk.Tk):
     def Quit_application(self):
         self.destroy()
 
+    # def remakeFrame(self):
+    #     # self.frames[PageOne].destroy()
+    #     # main_frame = tk.Frame(self, bg="#84CEEB", height=600, width=600)
+    #     # main_frame.pack_propagate(0)
+    #     # main_frame.pack(fill="both", expand="true")
+    #     # main_frame.grid_rowconfigure(0, weight=1)
+    #     # main_frame.grid_columnconfigure(0, weight=1)
+    #     # self.frames[PageOne] = PageOne(self, main_frame)
+    #     # # self.frames[PageOne].tkraise()
+    #     # self.show_frame(PageOne)
+    #     self.__init__()
+
 
 class GUI(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        self.main_frame = tk.Frame(self, bg="#BEB2A7", height=600, width=1024)
+        self.main_frame = tk.Frame(self, bg="#BEB2A7", height=600, width=600)
         # self.main_frame.pack_propagate(0)
         self.main_frame.pack(fill="both", expand="true")
-        self.main_frame.grid_rowconfigure(0, weight=1)
-        self.main_frame.grid_columnconfigure(0, weight=1)
+        #set column spaces
+        self.main_frame.grid_rowconfigure(0,weight = 1)
+        self.main_frame.grid_rowconfigure(1, uniform="rowgroup", weight=2)
+        self.main_frame.grid_rowconfigure(2, uniform="rowgroup", weight=2)
+        self.main_frame.grid_columnconfigure(0, uniform="colgroup")
+        self.main_frame.grid_columnconfigure(1, uniform="colgroup")
+        self.main_frame.grid_columnconfigure(2, uniform="colgroup")
+        self.main_frame.grid_columnconfigure(3, uniform="colgroup")
 
 # A bunch of random working widgets in tkinter
 # class Some_Widgets(GUI):  # inherits from the GUI class
@@ -170,56 +199,87 @@ class PageOne(GUI):
     def __init__(self, parent, controller):
         GUI.__init__(self, parent)
 
-        label1 = tk.Label(self.main_frame, font=("Verdana", 20), text="Video Select")
+        # label1 = tk.Label(self.main_frame, font=("Verdana", 20), text="Video Select")
         # label1.pack(side="top")
         # dir_btn = tk.Button(self.main_frame, text = "Get Videos" ,command=lambda: makeVidButtons(self.main_frame))
         # dir_btn.pack(padx=10, pady=30, side='top')  
+        # self.main_frame.grid_columnconfigure(0, weight=1)
+        # self.main_frame.grid_rowconfigure(0, weight=1)
+        self.craftFrame(parent,controller)
+    
+    def craftFrame(self, parent, controller):
+        print(VIDEO_DIRECTORY)
+        # count num of files for placement
+        vidCount = 0
+        for _, _, files in os.walk(VIDEO_DIRECTORY):
+            for file in files:    
+                if file.endswith(('.mp4', '.avi', '.webm')) and file.startswith('.') == False:
+                    vidCount += 1
+
+        global row_counter, col_counter
+        frame_label = ttk.LabelFrame(self.main_frame, text="VIDEO SELECT",labelanchor="ns")
+        frame_label.grid(row=row_counter, column=0, columnspan=3, sticky="nsew")
+        #make reset buttn
+        reset_btn = ttk.Button(self.main_frame, text="Reset", command=lambda: resetPage())
+        reset_btn.grid(row=row_counter, column=3, sticky="nsew")
+
+        row_counter += 1 # start from 1 row down
+        
         for item in os.listdir(VIDEO_DIRECTORY):
-            if item.endswith(('.mp3', '.avi', '.webm')):
+            print(item)
+            if item.endswith(('.mp4', '.avi', '.webm')):
                 # get_thumbnail(root,vid_dir + "/" + item, item)
-                global row_counter, col_counter
+                
+                # print(item,col_counter)
                 cap = cv2.VideoCapture(VIDEO_DIRECTORY + "/" + item)
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 10-1)
                 res, img = cap.read()
                 # print(res)
-                cv2.imwrite("/home/subramanian/Pictures/thumbnails/thumbnail" + str(col_counter) + ".png", img)
+                cv2.imwrite(THUMBNAIL_DIRECTORY + "/thumbnail" + str(col_counter) + ".png", img)
+                print(THUMBNAIL_DIRECTORY + "/thumbnail" + str(col_counter) + ".png")
                 # create_button(root,vid_name)\
                 # print(col_counter)
-                img = tk.PhotoImage(file = "/home/subramanian/Pictures/thumbnails/thumbnail" + str(col_counter) + ".png")
-                img = img.subsample(5, 5)
+                img = tk.PhotoImage(file = THUMBNAIL_DIRECTORY + "/thumbnail" + str(col_counter) + ".png")
+                img = img.subsample(4, 4)
                 print("creating buttons")
-                btn = tk.Button(self.main_frame, text = item, image = img, compound = 'top', command = lambda: launch_video(col_counter))
+                btn = tk.Button(self.main_frame,height=IMG_HEIGHT, width=IMG_WIDTH, text = item, image = img, compound = 'top', command = lambda: launch_video(col_counter))
                 btn.image = img
                 btn.vid_path = col_counter
-                btn.grid(column=col_counter%4, row=row_counter, padx=10, pady=5)
+                btn.grid(column=col_counter%4, row=row_counter, sticky="ew",padx=2, pady=2)
                 col_counter += 1
                 print(col_counter,row_counter)
                 if col_counter%4 == 0:
                     row_counter += 1
 
-
-class PageThree(GUI):
-    def __init__(self, parent, controller):
-        GUI.__init__(self, parent)
-
-        label1 = tk.Label(self.main_frame, font=("Verdana", 20), text="Page Three")
-        label1.pack(side="top")
-
-
-class PageFour(GUI):
-    def __init__(self, parent, controller):
-        GUI.__init__(self, parent)
-
-        label1 = tk.Label(self.main_frame, font=("Verdana", 20), text="Page Four")
-        label1.pack(side="top")
+def resetPage():
+    print("resetting page")
+    global row_counter, col_counter,root
+    row_counter = 0
+    col_counter = 0
+    # for widget in self.winfo_children():
+    #     widget.destroy()
+    # self.craftFrame(parent,controller)
+    # # self.__init__(parent, controller)
+    root.destroy()
+    root = MyApp()
 
 
-class PageTwo(GUI):
-    def __init__(self, parent, controller):
-        GUI.__init__(self, parent)
 
-        label1 = tk.Label(self.main_frame, font=("Verdana", 20), text="Page Two")
-        label1.pack(side="top")
+
+# class PageThree(GUI):
+#     def __init__(self, parent, controller):
+#         GUI.__init__(self, parent)
+
+#         label1 = tk.Label(self.main_frame, font=("Verdana", 20), text="Page Three")
+#         label1.pack(side="top")
+
+
+# class PageFour(GUI):
+#     def __init__(self, parent, controller):
+#         GUI.__init__(self, parent)
+
+#         label1 = tk.Label(self.main_frame, font=("Verdana", 20), text="Page Four")
+#         label1.pack(side="top")
 
 
 class OpenNewWindow(tk.Tk):
@@ -245,6 +305,7 @@ class OpenNewWindow(tk.Tk):
 
 def launch_video(vid_path):
     print(vid_path)
+    OpenNewWindow()
 
 # def create_button(root,vid_name):
 #     global row_counter, col_counter
@@ -297,7 +358,9 @@ def launch_video(vid_path):
 #     root.directory = tkFileDialog.askdirectory(initialdir="/home/subramanian")
 #     get_videos(root,root.directory)
 def set_dir():
-    VIDEO_DIRECTORY = tkFileDialog.askdirectory(initialdir="/home/subramanian")
+    global VIDEO_DIRECTORY
+    VIDEO_DIRECTORY = tkFileDialog.askdirectory(initialdir= INITIAL_DIRECTORY)
+    print(VIDEO_DIRECTORY)
 
 # root = tk.Tk()
 # root.title("Physiotherapy Assistant")
