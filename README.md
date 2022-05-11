@@ -13,3 +13,6 @@ A score is output which reperesents the similarity between the two people perfor
 
 We have also implemented a check to determine whether the correct body parts are being used for the exercise. This ensurest that the user performs it in the same manner as done in the reference video.
 ![img2](https://user-images.githubusercontent.com/79127258/167834987-a5cb6a84-5d11-45e7-96f9-5a4332e50361.png)
+
+At the end of the exercise, the user can view a graph containing the summary of their scores over time.
+![Score](https://user-images.githubusercontent.com/79127258/167870249-fcdd2803-f74b-4164-b73b-3567f0029acb.png)
